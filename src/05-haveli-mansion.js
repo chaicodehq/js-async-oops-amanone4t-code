@@ -93,33 +93,131 @@ export class HaveliSecurity {
 
   constructor(haveliName, passcode, maxResidents) {
     // Your code here
+    this.haveliName = haveliName;
+    this.#passcode = passcode;
+    this.#residents = [];
+    this.#accessLog = [];
+    this.#maxResidents = maxResidents;
   }
 
   addResident(name, role, passcode) {
     // Your code here
+    if(this.#passcode !== passcode){
+      return { 
+        success: false,
+        message: "Galat passcode!" 
+      }  
+    }
+    if(!["malik", "naukar", "mehmaan"].includes(role)){
+      return {
+        success: false,
+        message: "Invalid role!"
+      }
+    }
+    if(this.#residents.some((e) => e.name === name)){
+      return {
+        success: false,
+        message: "Already a resident!"
+      }
+    }
+    if(this.#residents.length >= this.#maxResidents){
+      return {
+        success: false,
+        message: "Haveli full hai!"
+      }
+    }
+    const currResident = {
+      name, 
+      role, 
+      addedAt: new Date().toISOString()
+    }
+    this.#residents.push(currResident);
+    return {
+      success: true,
+      message: `${name} ab haveli ka ${role} hai!`
+    }
   }
 
   removeResident(name, passcode) {
     // Your code here
+    if(this.#passcode !== passcode){
+      return { 
+        success: false,
+        message: "Galat passcode!" 
+      }  
+    }
+    const index = this.#residents.findIndex(r => r.name === name);
+    if(index === -1){
+      return { 
+        success: false,
+        message: "Resident nahi mila!"
+      };
+    }
+    this.#residents.splice(index, 1);
+    return { 
+      success: true,
+      message: `${name} ko haveli se nikal diya!`
+    }
   }
 
   verifyAccess(name) {
     // Your code here
+    const index = this.#residents.findIndex(r => r.name === name);
+    if(index === -1){
+      this.#accessLog.push({ name, time: new Date().toISOString(), allowed: false });
+      return {
+        allowed: false,
+        message: "Aapka entry allowed nahi hai!"
+      }
+    }
+    this.#accessLog.push({ name, time: new Date().toISOString(), allowed: true });
+    return{
+      allowed: true, 
+      message: `Swagat hai ${name}!`
+    }
   }
 
   getAccessLog(passcode) {
     // Your code here
+    if(this.#passcode !== passcode){
+      return null; 
+    }
+    const copy = [...this.#accessLog];
+    return copy;
   }
 
   changePasscode(oldPasscode, newPasscode) {
     // Your code here
+    if(this.#passcode !== oldPasscode)
+      return {
+        success: false, message: "Purana passcode galat hai!"
+      }
+    if(newPasscode.length < 4 ) 
+      return{
+        success: false, message: "Naya passcode bahut chhota hai!"
+      }
+    this.#passcode = newPasscode;
+    return {
+      success: true,
+      message: "Passcode badal diya!"
+    }
   }
 
+//    *   getResidentCount()
+//  *     - Returns number of residents (without exposing the list)
+//  *
+//  *   isResident(name)
+//  *     - Returns true/false if name is in #residents
+//  *     - Does NOT expose any other resident details
   getResidentCount() {
     // Your code here
+    let count = this.#residents.length
+    return count;
   }
 
   isResident(name) {
     // Your code here
+    const exists = this.#residents.some((e) => e.name === name);
+    return exists;
   }
 }

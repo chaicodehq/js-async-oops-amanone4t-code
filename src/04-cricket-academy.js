@@ -130,79 +130,203 @@
 export class Player {
   constructor(name, age, team) {
     // Your code here
+    this.name = name;
+    this.age = age;
+    this.team = team;
+    this.trainingHours = 0;
   }
 
   getProfile() {
     // Your code here
+    return {
+      name: this.name,
+      age: this.age,
+      team: this.team,
+      role: "player",
+      trainingHours: this.trainingHours
+    }
   }
 
   train(hours) {
     // Your code here
+    if(hours <= 0) return -1;
+    this.trainingHours += hours;
+    return this.trainingHours;
   }
 
   getTrainingHours() {
     // Your code here
+    return this.trainingHours;
+
   }
 }
 
 export class Batsman extends Player {
   constructor(name, age, team, battingStyle) {
     // Your code here
+    super(name, age, team);
+    this.battingStyle = battingStyle;
+    this.innings = [];
   }
-
+  
   playInnings(runs, balls) {
     // Your code here
+    if(runs <= 0 || balls <= 0) return null;
+    const inningStats ={
+      runs,
+      balls,
+      strikeRate: (runs / balls) * 100
+    }
+    this.innings.push(inningStats);
+    return inningStats;
   }
 
+//    *   getStrikeRate()
+//  *     - Returns average strikeRate across all innings
+//  *     - Agar no innings, return 0
+  
   getStrikeRate() {
     // Your code here
+    if(this.innings.length === 0) return 0;
+    const sum = this.innings.reduce((s, e) => {
+      return s += e.strikeRate;
+    },0)
+    return sum / this.innings.length;
   }
-
+  
   getProfile() {
     // Your code here
+    const base = super.getProfile();
+    const totalRuns = this.innings.reduce((sum, e) => {
+      return sum + e.runs;
+    },0)
+    return {
+      ...base,
+      battingStyle: this.battingStyle,
+      role: "batsman",
+      totalRuns,
+      inningsPlayed: this.innings.length
+    };
   }
 }
 
 export class Bowler extends Player {
   constructor(name, age, team, bowlingStyle) {
     // Your code here
+    super(name, age, team);
+    this.bowlingStyle = bowlingStyle;
+    this.spells = [];
   }
-
+  
   bowlSpell(wickets, runsConceded, overs) {
     // Your code here
+    if(wickets < 0 || runsConceded < 0 || overs <= 0) return null;
+    const bowlerStats = {
+      wickets,
+      runsConceded,
+      overs,
+      economy: runsConceded / overs
+    }
+    this.spells.push(bowlerStats);
+    return bowlerStats;
+    
   }
-
   getEconomy() {
     // Your code here
+    const sum = this.spells.reduce((s, e) => {
+      return s += e.economy
+    },0)
+    return sum / this.spells.length;
   }
 
   getProfile() {
     // Your code here
+    const base = super.getProfile();
+    const totalWickets = this.spells.reduce((sum, e) => {
+      return sum + e.wickets;
+    },0)
+    return {
+      ...base,
+      bowlingStyle: this.bowlingStyle,
+      role: "bowler",
+      totalWickets,
+      spellsBowled: this.spells.length
+    }
   }
 }
 
 export class AllRounder extends Player {
   constructor(name, age, team, battingStyle, bowlingStyle) {
     // Your code here
+    super(name, age, team);
+    this.battingStyle = battingStyle;
+    this.bowlingStyle = bowlingStyle;
+    this.innings = [];
+    this.spells = [];
   }
-
+  
   playInnings(runs, balls) {
     // Your code here
+    if(runs < 0 || balls < 0) return null;
+    const inningStats ={
+      runs,
+      balls,
+      strikeRate: (runs / balls) * 100
+    }
+    this.innings.push(inningStats);
+    return inningStats;
+    
   }
-
+  
   bowlSpell(wickets, runsConceded, overs) {
     // Your code here
+    if(wickets < 0 || runsConceded < 0 || overs <= 0) return null;
+    const bowlerStats = {
+      wickets,
+      runsConceded,
+      overs,
+      economy: runsConceded / overs
+    }
+    this.spells.push(bowlerStats);
+    return bowlerStats;
   }
-
+  
   getStrikeRate() {
     // Your code here
+    if(this.innings.length === 0) return 0;
+    const sum = this.innings.reduce((s, e) => {
+      return s + e.strikeRate;
+    },0)
+    return sum / this.innings.length;
   }
-
+  
   getEconomy() {
     // Your code here
+    if(this.spells.length === 0) return 0;
+    const sum = this.spells.reduce((s, e) => {
+      return s + e.economy
+    },0)
+    return sum / this.spells.length;
   }
-
+  
   getProfile() {
     // Your code here
+    const base = super.getProfile();
+    const totalRuns = this.innings.reduce((sum, e) => {
+      return sum + e.runs;
+    },0);
+    const totalWickets = this.spells.reduce((sum, e) => {
+      return sum + e.wickets;
+    },0)
+    return {
+      ...base,
+      battingStyle: this.battingStyle,
+      bowlingStyle: this.bowlingStyle,
+      role: "allrounder",
+      totalRuns,
+      totalWickets,
+      inningsPlayed: this.innings.length,
+      spellsBowled: this.spells.length
+    }
   }
 }

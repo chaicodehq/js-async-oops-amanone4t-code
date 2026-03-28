@@ -87,26 +87,82 @@
  *   // => [{ status: "fulfilled", value: {...} },
  *   //     { status: "rejected", reason: "Item name required!" }]
  */
+
+
 export function prepareOrder(item, prepTime) {
   // Your code here
+  return new Promise((resolve, reject) => {
+    if(typeof item !== "string" || !item){
+      reject(new Error("Item name required!"))
+    }
+    if(prepTime <= 0 || typeof prepTime !== "number"){
+      reject(new Error("Invalid prep time!"))
+    }
+    setTimeout(() => {
+      resolve({
+        item, 
+        ready: true, 
+        prepTime
+      })
+    }, prepTime);
+  })
 }
 
 export function prepareBatch(items) {
   // Your code here
+  if(items.length === 0)return Promise.resolve([]); 
+  const orders = items.map(item => 
+    prepareOrder(item.name, item.prepTime)
+  )
+  return Promise.all(orders);
+
 }
 
 export function getFirstReady(items) {
   // Your code here
+  if(items.length === 0){
+    return Promise.reject(new Error("No items to prepare!"));
+  }
+  const orders = items.map(item => prepareOrder(item.name, item.prepTime))
+  return Promise.race(orders);
 }
 
 export function prepareSafeBatch(items) {
   // Your code here
+  if(items.length === 0){
+    return Promise.resolve([]);
+  }
+  const orders = items.map((item) => prepareOrder(item.name, item.prepTime)
+      .then(value => ({ status: "fulfilled", value }))                                                            
+      .catch(error => ({ status: "rejected", reason: error.message }))
+   )
+   return Promise.all(orders)
+  
 }
 
 export function deliverWithTimeout(orderPromise, timeoutMs) {
   // Your code here
+  if(timeoutMs <= 0){
+    return Promise.reject(new Error("Invalid timeout!"))
+  }
+  const time = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("Delivery timeout!"))
+    }, timeoutMs);
+  })
+  return Promise.race([time, orderPromise])
+  
 }
 
 export function batchWithRetry(items, maxRetries) {
   // Your code here
+  for (let i = 0; i <= maxRetries; i++) {
+    try {                                                                                                                           
+      return prepareBatch(items);                                                                  
+    }catch (error) {                                                                                                               
+      if (attempt === maxRetries) {                                                                                                 
+        throw error;                                                            
+      }
+    }
+  }
 }

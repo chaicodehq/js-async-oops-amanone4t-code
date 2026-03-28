@@ -77,29 +77,117 @@
 export class DabbaService {
   constructor(serviceName, area) {
     // Your code here
+    this.serviceName = serviceName;
+    this.area = area;
+    this.customers = []
+    this._nextId = 1
   }
 
   addCustomer(name, address, mealPreference) {
     // Your code here
+    const preference = ["veg", "nonveg", "jain"];
+    if(
+      !preference.includes(mealPreference)|| 
+      this.customers.find((e) => e.name === name)
+    )
+      return null;
+    const customer = {
+      id : this._nextId++,
+      name,
+      address,
+      mealPreference,
+      active: true,
+      delivered: false
+    }
+    this.customers.push(customer);
+    return customer;
   }
 
   removeCustomer(name) {
     // Your code here
+    for(let i = 0; i < this.customers.length; i++){
+      if(this.customers[i].name === name){
+        if(!this.customers[i].active){
+          return false;
+        }else{
+        this.customers[i].active = false;
+        return true;
+        }
+      }
+    }
+    return false;
   }
 
   createDeliveryBatch() {
     // Your code here
+    const delivery = [];
+    for(let i = 0; i < this.customers.length; i++){
+      if(this.customers[i].active){
+        this.customers[i].delivered = false;
+        const deliveryObj = { 
+          customerId: this.customers[i].id,
+          name: this.customers[i].name, 
+          address: this.customers[i].address, 
+          mealPreference: this.customers[i].mealPreference,
+          batchTime: new Date().toISOString() 
+        }
+        delivery.push(deliveryObj);
+      }
+    }
+    return delivery;
   }
 
   markDelivered(customerId) {
     // Your code here
+    for(let i = 0; i < this.customers.length; i++){
+      if(this.customers[i].id === customerId && this.customers[i].active){
+        this.customers[i].delivered = true;
+        return true;
+      }
+    }
+    return false;
   }
 
   getDailyReport() {
     // Your code here
+    let delivered = 0;
+    let pending = 0;
+    let vegCount = 0, nonvegCount = 0, jainCount = 0;
+    for(let i = 0; i < this.customers.length; i++){
+      if(this.customers[i].active && this.customers[i].delivered){
+        delivered++;
+      }else if(this.customers[i].active && !this.customers[i].delivered){
+        pending++;
+      }
+      if(this.customers[i].active){
+        if(this.customers[i].mealPreference === "veg"){
+          vegCount++;
+        }else if(this.customers[i].mealPreference === "nonveg"){
+          nonvegCount++;
+        }else{
+          jainCount++;
+        }
+      }
+    }
+    return {
+      totalCustomers : delivered + pending,
+      delivered,
+      pending,
+      mealBreakdown : {
+        veg: vegCount,
+        nonveg: nonvegCount,
+        jain: jainCount
+      }
+    }
   }
 
   getCustomer(name) {
     // Your code here
+    for(let i = 0; i < this.customers.length; i++){
+      if(this.customers[i].name === name){
+        return this.customers[i];
+      }
+    }
+    return null;
   }
 }

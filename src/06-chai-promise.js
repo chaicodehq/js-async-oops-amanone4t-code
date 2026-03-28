@@ -72,18 +72,58 @@
  *   //   { status: "rejected", reason: "Yeh chai available nahi hai!" }
  *   // ]
  */
+
 export function orderChai(type, quantity) {
   // Your code here
+  const prices = { cutting: 10, special: 20, ginger: 15, masala: 25 }
+  return new Promise((resolve, reject) => {
+    if(!["cutting", "special", "ginger", "masala"].includes(type)){
+      reject(new Error("Yeh chai available nahi hai!"))
+      return;
+    }
+    if(quantity <= 0 || typeof quantity !== "number"){
+      reject(new Error("Kitni chai chahiye bhai?"))
+      return;
+    }
+    setTimeout(() => {
+        const total = prices[type] * quantity;
+        resolve({ type, quantity, total });
+      }, 100);
+  })
 }
 
 export function checkIngredients(ingredient) {
   // Your code here
+  return new Promise((resolve, reject) => {
+    if(!["tea", "milk", "sugar", "ginger", "cardamom"].includes(ingredient)){
+      reject(new Error(`${ingredient} khatam ho gaya!`))
+    }
+    resolve({ingredient, available: true})
+  })
 }
 
 export function prepareChaiWithTimeout(type, timeoutMs) {
   // Your code here
+  const chaiPromise = orderChai(type, 1);
+  const timeoutPromise = new Promise((res, rej) => {
+    setTimeout(() => {
+      rej(new Error("Bahut der ho gayi, chai nahi bani!"))
+    }, timeoutMs);
+  })
+  return Promise.race([chaiPromise, timeoutPromise]);
 }
 
 export function processChaiQueue(orders) {
   // Your code here
+  if(orders.length === 0){                                                                                        
+    return Promise.resolve([]);                                                                                   
+  }                                                                                                               
+                                                                                                                  
+  const promises = orders.map(order =>                                                                            
+    orderChai(order.type, order.quantity)                                                                         
+      .then(value => ({ status: "fulfilled", value }))                                                            
+      .catch(error => ({ status: "rejected", reason: error.message }))                                                          
+  );                                                                                                              
+                                                                                                                  
+  return Promise.all(promises);  
 }
